@@ -1,0 +1,19 @@
+{
+  "name": "sacliente",
+  "version": "1.0.0",
+  "description": "proyecto de sa",
+  "main": "cliente.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luisgilberto1995/proyectosa.git"
+  },
+  "author": "Luis Barrios",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/luisgilberto1995/proyectosa/issues"
+  },
+  "homepage": "https://github.com/luisgilberto1995/proyectosa#readme"
+}

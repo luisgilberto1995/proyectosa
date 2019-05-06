@@ -1,0 +1,7 @@
+
+
+
+
+var confGeneral = {
+    pais:"pais"
+}
