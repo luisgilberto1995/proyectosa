@@ -1,0 +1,9 @@
+{
+    "pais":"nodoamerica.grupo4.com",
+    "rangoInicialCantidad": 1,
+    "rangoFinalCantidad": 10,
+    "rangoInicalTiempo":1,
+    "rangoFinalTiempo":30,
+    "clientes":1,
+    "tiendas":["tienda1.grupo1.com", "tienda2.grupo2.com", "tienda3.grupo3.com"]
+}

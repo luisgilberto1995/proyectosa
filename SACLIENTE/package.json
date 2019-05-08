@@ -1,0 +1,11 @@
+{
+  "name": "sacliente",
+  "version": "1.0.0",
+  "description": "cliente para proyecto de sa",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Luis Barrios",
+  "license": "ISC"
+}

@@ -24,8 +24,8 @@ var request = require('request');
 //const fs = require('fs')
 //var jsonData = JSON.parse(fs.readFileSync('esbconf.json', 'utf-8'))
 
-app.listen(3000, function () {
-  console.log('Servidor web en el puerto 3000!');
+app.listen(puerto, function () {
+  console.log('Servidor web en el puerto '+puerto+'!');
 });
 
 app.get('/', function (req, res) {
