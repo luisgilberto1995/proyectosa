@@ -68,12 +68,15 @@ app.get('/PIM/obtenerCatalogo', function (req, res)
   }
 });
 
-app.get('/PIM/enriquecerProducto2', function (req, res) {
-  var arregloSKU = req.body;
+app.get('/Bodega/obtenerInventario2', function (req, res) {
+
+  var arregloSKU = req.body.arreglo;
+  //var arregloSKU = req.body;
   var arregloRespuesta = [];
   for(var i = 0; i < arregloSKU.length; i++)
   {
-    var objeto = {
+    //enriquecerProducto
+    /*var objeto = {
       sku:arregloSKU[i],
       nombre:"nombre",
       precio_lista:100.0,
@@ -82,9 +85,16 @@ app.get('/PIM/enriquecerProducto2', function (req, res) {
       imagenes: ["img1","img2"],
       categorias: [1, 2, 3],
       activo: true
+    };*/
+    //obtenerInventario
+    var objeto = {
+      sku:arregloSKU[i],
+      inventario:Math.floor(Math.random() * (+10 - +1)) + +1,
     };
     arregloRespuesta.push(objeto);
   }
+  //var body = {respuesta: arregloRespuesta};
+  //res.send(JSON.stringify(body));
   res.send(JSON.stringify(arregloRespuesta));
 });
 
@@ -119,13 +129,54 @@ app.get('/PIM/enriquecerProducto', function (req, res) {
 });
 
 app.get('/Bodega/obtenerInventario', function (req, res) {
-  console.log("obteniendo inventario");
-  res.send('123');
+  console.log(req.body.length);
+  /*
+  if(tengoPIM)
+  {
+    //ES ESTE MISMO PIM
+    res.send('MI PIM');
+  }
+  else
+  {*/
+    console.log(req.body.destino);
+      var nodo = tabla[req.body.destino];
+      console.log("Redirigiendo a:" + nodo.nodo + ":" + puerto + "/Bodega/obtenerInventario"+rebote);
+      const options = {
+        url: "http://"+nodo.nodo + ":" + puerto + "/Bodega/obtenerInventario"+rebote,
+        method:'GET',
+        json: true,
+        body: req.body
+      };
+
+      request(options,  (err, response, body) => 
+      {
+        if (err) { return console.log(err); }
+        res.send(body);
+      });
+  //}
+
 });
 
 app.get('/Bodega/realizarDespacho', function (req, res) {
-  console.log("realizar despacho");
-  res.send('456');
+  console.log("Realizar Despacho");
+  console.log(req.body.length);
+  
+  console.log(req.body.destino);
+  var nodo = tabla[req.body.destino];
+  console.log("Redirigiendo a:" + nodo.nodo + ":" + puerto + "/Bodega/realizarDespacho"+rebote);
+  const options = {
+    url: "http://"+nodo.nodo + ":" + puerto + "/Bodega/realizarDespacho"+rebote,
+    method:'GET',
+    json: true,
+    body: req.body
+  };
+
+  request(options,  (err, response, body) => 
+  {
+    if (err) { return console.log(err); }
+    res.send(body);
+  });
+      
 });
 
 app.post('/test/test', function(req, res) {
@@ -140,18 +191,20 @@ app.post('/test/test', function(req, res) {
 function test()
 {
   console.log("TEST:");
-
+  var body = {};
   var arreglo =[];
   arreglo.push("sku1");
   arreglo.push("sku2");
   arreglo.push("sku3");
+  body.arreglo = arreglo;
+  body.destino = "nodoamerica.grupo4.com";
 
   var options = {
-    url: 'http://localhost:3000/PIM/enriquecerProducto',
+    url: 'http://localhost:3000/Bodega/obtenerInventario',
     method: 'GET',
     /* */
     json:true,
-    body:arreglo
+    body:body
     /* */
   };
 
@@ -164,7 +217,6 @@ function test()
       console.log("ups!", error);
     }
   });
-  
 }
 
 
