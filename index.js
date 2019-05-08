@@ -1,4 +1,5 @@
 'use strict';
+
 //--------------Servidor Web------------
 var express = require('express');
 var app = express();
@@ -9,12 +10,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 //-----------Configuracion---------------
 //const _ = require('lodash');
 const config = require('./config/esbconf.json');
-console.log(config.Nodos);
+//console.log(config.Nodos);
 //---------------------------------------
 //--------------Globales-----------------
 var tabla = [];
 var tengoPIM = false;
 var dirPIM = "localhost";
+var puerto = 3000;
+var rebote = "2";
 //---------------------------------------
 
 var request = require('request');
@@ -40,15 +43,15 @@ app.get('/PIM/obtenerCatalogo', function (req, res)
   if(tengoPIM)
   {
     //ES ESTE MISMO PIM
-    res.send('YO');
+    res.send('MI PIM');
   }
   else
   {
       //ES OTRO PIM
       var nodoPIM = getPIM();
-      console.log("Redirigiendo a:" + nodoPIM.nodo + ":3000/PIM/obtenerCatalogo2");
+      console.log("Redirigiendo a:" + nodoPIM.nodo + ":" + puerto + "/PIM/obtenerCatalogo"+rebote);
       const options = {
-        url: nodoPIM.nodo+":3000/PIM/obtenerCatalogo2",
+        url: "http://"+nodoPIM.nodo + ":" + puerto + "/PIM/obtenerCatalogo"+rebote,
         method:'GET',
         /*headers: {
             'Accept': 'application/json',
@@ -56,23 +59,63 @@ app.get('/PIM/obtenerCatalogo', function (req, res)
         }*/
       };
 
-      request(options,  (err, res, body) => 
+      request(options,  (err, response, body) => 
       {
         if (err) { return console.log(err); }
-        console.log("--------BODY--------");
-        console.log(body);
-        console.log("--------------------");
-        res.send("YO NO");
+        
+        res.send(body);
       });
   }
 });
 
-app.get('/PIM/obtenerCatalogo2', function (req, res) {
-  res.send('BILL!');
+app.get('/PIM/enriquecerProducto2', function (req, res) {
+  var arregloSKU = req.body;
+  var arregloRespuesta = [];
+  for(var i = 0; i < arregloSKU.length; i++)
+  {
+    var objeto = {
+      sku:arregloSKU[i],
+      nombre:"nombre",
+      precio_lista:100.0,
+      descripcion_corta:"descripcion corta",
+      descripcion_larga:"descripcion larga",
+      imagenes: ["img1","img2"],
+      categorias: [1, 2, 3],
+      activo: true
+    };
+    arregloRespuesta.push(objeto);
+  }
+  res.send(JSON.stringify(arregloRespuesta));
 });
 
 app.get('/PIM/enriquecerProducto', function (req, res) {
-  res.send('catalogo JSON');
+
+  console.log(req.body.length);
+  
+  if(tengoPIM)
+  {
+    //ES ESTE MISMO PIM
+    res.send('MI PIM');
+  }
+  else
+  {
+      //ES OTRO PIM
+      var nodoPIM = getPIM();
+      console.log("Redirigiendo a:" + nodoPIM.nodo + ":" + puerto + "/PIM/enriquecerProducto"+rebote);
+      const options = {
+        url: "http://"+nodoPIM.nodo + ":" + puerto + "/PIM/enriquecerProducto"+rebote,
+        method:'GET',
+        json: true,
+        body: req.body
+      };
+
+      request(options,  (err, response, body) => 
+      {
+        if (err) { return console.log(err); }
+        
+        res.send(body);
+      });
+  }
 });
 
 app.get('/Bodega/obtenerInventario', function (req, res) {
@@ -84,9 +127,6 @@ app.get('/Bodega/realizarDespacho', function (req, res) {
   console.log("realizar despacho");
   res.send('456');
 });
-
-
-
 
 app.post('/test/test', function(req, res) {
   var user_id = req.body.id;
@@ -100,14 +140,24 @@ app.post('/test/test', function(req, res) {
 function test()
 {
   console.log("TEST:");
+
+  var arreglo =[];
+  arreglo.push("sku1");
+  arreglo.push("sku2");
+  arreglo.push("sku3");
+
   var options = {
-    uri: 'localhost:3000/PIM/obtenerCatalogo',
-    method: 'GET'
+    url: 'http://localhost:3000/PIM/enriquecerProducto',
+    method: 'GET',
+    /* */
+    json:true,
+    body:arreglo
+    /* */
   };
 
   request(options, function (error, response, body) {
     if (!error && response.statusCode == 200) {
-      console.log("Fin: "+body) // Print the shortened url.
+      console.log("Fin: ", body) // Print the shortened url.
     }
     else
     {
@@ -123,12 +173,13 @@ function cargarNodos()
   console.log("Cargando nodos...");
   config.Nodos.forEach(function(nodo)
   {
-    //console.log(">> "+nodo.nodo);
+    //console.log(">> ", nodo);
     var nodoArreglo = nodo.nodo.split('.');
     nodo.ubicacion = nodoArreglo[0];
     var servidorArreglo = nodo.servidor.split('.');
     nodo.tipo = servidorArreglo[0];
     nodo.grupo = servidorArreglo[1];
+    
     if(nodo.tipo === "pim" && nodo.nodo === config.Actual)
     {
         dirPIM = nodo.nodo;
@@ -143,9 +194,11 @@ function getPIM()
 {
   for(var nodo in tabla)
   {
-    if(nodo.tipo === "pim" || nodo.tipo === "PIM" || nodo.tipo === "Pim")
+    var nodoTabla = tabla[nodo];
+    console.log(nodoTabla.tipo);
+    if(nodoTabla.tipo === "pim" || nodoTabla.tipo === "PIM" || nodoTabla.tipo === "Pim")
     {
-        return nodo;
+        return nodoTabla;
     }
   }
 }
