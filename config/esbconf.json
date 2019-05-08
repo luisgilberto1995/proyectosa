@@ -1,0 +1,25 @@
+{
+    "Nodos": [
+        {
+            "nodo": "nodoeuropa.grupo5.com",
+            "servidor": "pim.compania.com"
+        },
+        {
+            "nodo": "nodoamerica.grupo4.com",
+            "servidor": "chicken.compania.com"
+        },
+        {
+            "nodo": "nodoasia.grupo3.com",
+            "servidor": "ERP.compania.com"
+        },
+        {
+            "nodo": "nodooceania.grupo2.com",
+            "servidor": "bodega.compania.com"
+        },
+        {
+            "nodo": "nodorusia.grupo1.com",
+            "servidor": "Tienda.compania.com"
+        }
+    ],
+    "Actual":"nodoamerica.grupo4.com"
+}

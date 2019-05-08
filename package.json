@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/luisgilberto1995/proyectosa/issues"
   },
-  "homepage": "https://github.com/luisgilberto1995/proyectosa#readme"
+  "homepage": "https://github.com/luisgilberto1995/proyectosa#readme",
+  "dependencies": {
+    "body-parser": "^1.19.0"
+  }
 }
