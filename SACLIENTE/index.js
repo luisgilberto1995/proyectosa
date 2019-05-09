@@ -13,11 +13,10 @@ const config = require('./config/conf.json');
 //console.log(config.Nodos);
 //---------------------------------------
 //--------------Globales-----------------
-var tabla = [];
-var tengoPIM = false;
-var dirPIM = "localhost";
+
 var puerto = 3001;
 var rebote = "2";
+
 //---------------------------------------
 
 var request = require('request');
@@ -34,12 +33,45 @@ app.get('/', function (req, res) {
 
 app.get('/tienda/obtenerCatalogo', function (req, res) 
 {
+
+  var body = {
+    categorias:".",
+    productos:
+    [
+      {
+        nombre:"Producto1",
+        sku:"sku1",
+        categorias:[1,2,3 ],
+        activo:true
+      },
+      {
+        nombre:"Producto2",
+        sku:"sku2",
+        categorias:[4,5,6 ],
+        activo:true
+      },
+      {
+        nombre:"Producto3",
+        sku:"sku3",
+        categorias:[1,3,5 ],
+        activo:false
+      },
+      {
+        nombre:"Producto4",
+        sku:"sku4",
+        categorias:[4,2,6 ],
+        activo:false
+      }
+    ]
+  };
+
+  res.send(body);
   //res.send('catalogo JSON');
   /*var origen = req.body.origen;
   var destino = req.body.destino;
   var jwt = req.body.destino;
   console.log(destino);*/
-
+/*
   if(tengoPIM)
   {
     //ES ESTE MISMO PIM
@@ -56,7 +88,7 @@ app.get('/tienda/obtenerCatalogo', function (req, res)
         /*headers: {
             'Accept': 'application/json',
             'Accept-Charset': 'utf-8',
-        }*/
+        }*
       };
 
       request(options,  (err, response, body) => 
@@ -66,6 +98,7 @@ app.get('/tienda/obtenerCatalogo', function (req, res)
         res.send(body);
       });
   }
+  */
 });
 
 app.get('/tienda/colocarOrden', function (req, res) 
@@ -103,6 +136,7 @@ app.get('/tienda/colocarOrden', function (req, res)
       });
   }
 });
+
 
 app.get('/PIM/enriquecerProducto', function (req, res) {
 
@@ -226,35 +260,53 @@ app.post('/test/test', function(req, res) {
 
 function test()
 {
-  console.log("TEST:");
+  console.log("cliente test:");
+  //Consultar categorias
   var body = {};
-  var arreglo =[];
-  arreglo.push("sku1");
-  arreglo.push("sku2");
-  arreglo.push("sku3");
-  body.arreglo = arreglo;
-  body.destino = "nodoamerica.grupo4.com";
-
-  var options = {
-    url: 'http://localhost:3000/Bodega/obtenerInventario',
+  body.origen = config.pais;
+  
+  var optionsObtenerCatalogo = {
+    url: 'http://localhost:'+puerto+'/tienda/obtenerCatalogo',
     method: 'GET',
-    /* */
     json:true,
     body:body
-    /* */
   };
 
-  request(options, function (error, response, body) {
+  request(optionsObtenerCatalogo, function (error, response, body) {
     if (!error && response.statusCode == 200) {
       console.log("Fin: ", body) // Print the shortened url.
+      consultarInventario(body);
     }
     else
     {
-      console.log("ups!", error);
+      console.log("Ups!", error);
     }
   });
 }
 
+function consultarInventario(body)
+{
+  var productoRandom = Math.floor(Math.random() * (+body.productos.length - +0)) + +0; 
+  console.log("Producto escogido: "+productoRandom);
+
+  var optionsObtenerInventario = {
+    url: 'http://localhost:'+puerto+'/tienda/obtenerInventario',
+    method: 'GET',
+    json:true,
+    body:body
+  };
+
+  request(optionsObtenerCatalogo, function (error, response, body) {
+    if (!error && response.statusCode == 200) {
+      console.log("Fin: ", body) // Print the shortened url.
+      consultarInventario(body);
+    }
+    else
+    {
+      console.log("Ups!", error);
+    }
+  });
+}
 
 function cargarConfiguracion()
 {
@@ -301,8 +353,9 @@ function checkOrigen(destino)
 }
 
 //------------CLIENTE-----------------
-//Consultar catalogo (categorias)
+// Consultar catalogo (categorias)
 // Seleccionar un producto random
+// Consultar disponibilidad
 //http://localhost:1234/tienda/colocarOrden (producto aleatorio de la 1era consulta, cantidad aleatoria según conf)
 
 
