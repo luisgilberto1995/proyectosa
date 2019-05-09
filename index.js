@@ -200,7 +200,7 @@ function test()
   body.destino = "nodoamerica.grupo4.com";
 
   var options = {
-    url: 'http://localhost:3000/Bodega/obtenerInventario',
+    url: 'http://localhost:'+puerto+'/Bodega/obtenerInventario',
     method: 'GET',
     /* */
     json:true,
