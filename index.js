@@ -16,7 +16,7 @@ const config = require('./config/esbconf.json');
 var tabla = [];
 var tengoPIM = false;
 var dirPIM = "localhost";
-var puerto = 3000;
+var puerto = 80;
 var rebote = "2";
 //---------------------------------------
 
