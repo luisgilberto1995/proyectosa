@@ -37,6 +37,38 @@ app.get('/', function (req, res) {
   res.send('ESB corriendo...');
 });
 
+app.get('/PIM/obtenerCatalogo2', function (req, res) {
+
+  res.send({mensaje:"ok"});
+  return;
+  var arregloSKU = req.body.arreglo;
+  //var arregloSKU = req.body;
+  var arregloRespuesta = [];
+  for(var i = 0; i < arregloSKU.length; i++)
+  {
+    //enriquecerProducto
+    /*var objeto = {
+      sku:arregloSKU[i],
+      nombre:"nombre",
+      precio_lista:100.0,
+      descripcion_corta:"descripcion corta",
+      descripcion_larga:"descripcion larga",
+      imagenes: ["img1","img2"],
+      categorias: [1, 2, 3],
+      activo: true
+    };*/
+    //obtenerInventario
+    var objeto = {
+      sku:arregloSKU[i],
+      inventario:Math.floor(Math.random() * (+10 - +1)) + +1,
+    };
+    arregloRespuesta.push(objeto);
+  }
+  //var body = {respuesta: arregloRespuesta};
+  //res.send(JSON.stringify(body));
+  //res.send(JSON.stringify(arregloRespuesta));
+});
+
 app.get('/PIM/obtenerCatalogo', function (req, res) 
 {
   const optionsAuth = {
@@ -78,6 +110,7 @@ app.get('/PIM/obtenerCatalogo', function (req, res)
             if(tengoPIM)
             {
               //ES ESTE MISMO PIM
+              //Metodo con direccion del pim
               res.send('MI PIM');
             }
             else
@@ -111,38 +144,6 @@ app.get('/PIM/obtenerCatalogo', function (req, res)
         });
       }
     });
-});
-
-app.get('/PIM/obtenerCatalogo2', function (req, res) {
-
-  res.send({mensaje:"ok"});
-  return;
-  var arregloSKU = req.body.arreglo;
-  //var arregloSKU = req.body;
-  var arregloRespuesta = [];
-  for(var i = 0; i < arregloSKU.length; i++)
-  {
-    //enriquecerProducto
-    /*var objeto = {
-      sku:arregloSKU[i],
-      nombre:"nombre",
-      precio_lista:100.0,
-      descripcion_corta:"descripcion corta",
-      descripcion_larga:"descripcion larga",
-      imagenes: ["img1","img2"],
-      categorias: [1, 2, 3],
-      activo: true
-    };*/
-    //obtenerInventario
-    var objeto = {
-      sku:arregloSKU[i],
-      inventario:Math.floor(Math.random() * (+10 - +1)) + +1,
-    };
-    arregloRespuesta.push(objeto);
-  }
-  //var body = {respuesta: arregloRespuesta};
-  //res.send(JSON.stringify(body));
-  //res.send(JSON.stringify(arregloRespuesta));
 });
 
 app.get('/PIM/enriquecerProducto', function (req, res) {

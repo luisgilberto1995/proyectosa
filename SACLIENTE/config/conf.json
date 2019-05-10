@@ -1,10 +1,8 @@
 {
-    "pais":"Guatemala",
-    "nodo":"nodoamerica.compania.com",
-    "rangoInicialCantidad": 1,
-    "rangoFinalCantidad": 10,
-    "rangoInicalTiempo":1,
-    "rangoFinalTiempo":30,
+    "rangoInicialCantidadProductos": 1,
+    "rangoFinalCantidadProductos": 10,
+    "tiempoMuerto":30,
     "clientes":1,
-    "tiendas":["localhost", "localhost", "localhost"]
+    "tiendas":["localhost", "localhost", "localhost"],
+    "ordenes": 10
 }
