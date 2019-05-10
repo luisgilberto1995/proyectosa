@@ -4,6 +4,7 @@
 var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
+
 app.use(bodyParser.json()); // support json encoded bodies
 app.use(bodyParser.urlencoded({ extended: true }));
 //---------------------------------------
@@ -18,6 +19,10 @@ var tengoPIM = false;
 var dirPIM = "localhost";
 var puerto = 80;
 var rebote = "2";
+var authdir = "35.243.184.92";
+var authport = 8080;
+var pimdir = "";
+var pimport = "";
 //---------------------------------------
 
 var request = require('request');
@@ -29,47 +34,89 @@ app.listen(puerto, function () {
 });
 
 app.get('/', function (req, res) {
-  res.send('Inicio');
+  res.send('ESB corriendo...');
 });
 
 app.get('/PIM/obtenerCatalogo', function (req, res) 
 {
-  //res.send('catalogo JSON');
-  /*var origen = req.body.origen;
-  var destino = req.body.destino;
-  var jwt = req.body.destino;
-  console.log(destino);*/
-
-  if(tengoPIM)
-  {
-    //ES ESTE MISMO PIM
-    res.send('MI PIM');
-  }
-  else
-  {
-      //ES OTRO PIM
-      var nodoPIM = getPIM();
-      console.log("Redirigiendo a:" + nodoPIM.nodo + ":" + puerto + "/PIM/obtenerCatalogo"+rebote);
-      const options = {
-        url: "http://"+nodoPIM.nodo + ":" + puerto + "/PIM/obtenerCatalogo"+rebote,
-        method:'GET',
-        /*headers: {
-            'Accept': 'application/json',
-            'Accept-Charset': 'utf-8',
-        }*/
-      };
-
-      request(options,  (err, response, body) => 
+  const optionsAuth = {
+  url: "http://"+authdir + ":" + authport + "/getToken",
+  method:'POST',
+  json: true, 
+  body://req.body
+      { 
+        //client_id: req.body.client_id,
+        //client_secret: req.body.client_secret
+        client_id: 1,
+        client_secret: "secret1"
+       }
+  };
+  request(optionsAuth,  (err, responseAuth, bodyAuth2) => 
+    {
+      if (err) { return console.log(err); }
+      //console.log(body.access_token);
+      if(bodyAuth2.success)
       {
-        if (err) { return console.log(err); }
-        
-        res.send(body);
-      });
-  }
+        console.log("*** Se intentó un acceso no autorizado: incorrecto client_id o client_secret");
+        res.send("Credenciales incorrectas");
+      }
+      else
+      {
+        const options2 = {
+          url: "http://"+authdir + ":" + authport + "/validateToken",
+          method:'GET',
+          json:true,
+          headers:{
+            'Authorization':bodyAuth2.access_token
+          }
+        };
+        request(options2,  (err, responseAuth2, bodyAuth2) => 
+        {
+          if (err) { return console.log(err); }
+          if(bodyAuth2.success)
+          {
+            if(tengoPIM)
+            {
+              //ES ESTE MISMO PIM
+              res.send('MI PIM');
+            }
+            else
+            {
+                //ES OTRO PIM
+                var nodoPIM = getPIM();
+                console.log("Redirigiendo a:" + nodoPIM.nodo + ":" + puerto + "/PIM/obtenerCatalogo"+rebote);
+                const options = {
+                  url: "http://"+nodoPIM.nodo + ":" + puerto + "/PIM/obtenerCatalogo"+rebote,
+                  method:'GET',
+                  json:true
+                  /*headers: {
+                      'Accept': 'application/json',
+                      'Accept-Charset': 'utf-8',
+                  }*/
+                };
+          
+                request(options,  (err, response, body) => 
+                {
+                  if (err) { return console.log(err); }
+                  console.log(body);
+                  res.send(body);
+                });
+            }
+          }
+          else
+          {
+            console.log("Token incorrecto: ", bodyAuth2);
+            res.send("Token Incorrecto");
+          }
+        });
+      }
+    });
 });
 
-app.get('/Bodega/obtenerInventario2', function (req, res) {
+app.get('/PIM/obtenerCatalogo2', function (req, res) {
 
+  res.send({mensaje:"ok"});
+  return;
   var arregloSKU = req.body.arreglo;
   //var arregloSKU = req.body;
   var arregloRespuesta = [];
@@ -95,88 +142,215 @@ app.get('/Bodega/obtenerInventario2', function (req, res) {
   }
   //var body = {respuesta: arregloRespuesta};
   //res.send(JSON.stringify(body));
-  res.send(JSON.stringify(arregloRespuesta));
+  //res.send(JSON.stringify(arregloRespuesta));
 });
 
 app.get('/PIM/enriquecerProducto', function (req, res) {
 
-  console.log(req.body.length);
-  
-  if(tengoPIM)
-  {
-    //ES ESTE MISMO PIM
-    res.send('MI PIM');
-  }
-  else
-  {
-      //ES OTRO PIM
-      var nodoPIM = getPIM();
-      console.log("Redirigiendo a:" + nodoPIM.nodo + ":" + puerto + "/PIM/enriquecerProducto"+rebote);
-      const options = {
-        url: "http://"+nodoPIM.nodo + ":" + puerto + "/PIM/enriquecerProducto"+rebote,
-        method:'GET',
-        json: true,
-        body: req.body
-      };
-
-      request(options,  (err, response, body) => 
+  const optionsAuth = {
+    url: "http://"+authdir + ":" + authport + "/getToken",
+    method:'POST',
+    json: true, 
+    body://req.body
+        { 
+          //client_id: req.body.client_id,
+          //client_secret: req.body.client_secret
+          client_id: 1,
+          client_secret: "secret1"
+         }
+    };
+    request(optionsAuth,  (err, responseAuth, bodyAuth2) => 
       {
         if (err) { return console.log(err); }
-        
-        res.send(body);
+        //console.log(body.access_token);
+        if(bodyAuth2.success)
+        {
+          console.log("*** Se intentó un acceso no autorizado: incorrecto client_id o client_secret");
+          res.send("Credenciales incorrectas");
+        }
+        else
+        {
+          const options2 = {
+            url: "http://"+authdir + ":" + authport + "/validateToken",
+            method:'GET',
+            json:true,
+            headers:{
+              'Authorization':bodyAuth2.access_token
+            }
+          };
+          request(options2,  (err, responseAuth2, bodyAuth2) => 
+          {
+            if (err) { return console.log(err); }
+            if(bodyAuth2.success)
+            {
+              //----------------------------------
+              console.log("> "+req.body.length);
+              if(tengoPIM)
+              {
+                //ES ESTE MISMO PIM
+                res.send('MI PIM');
+              }
+              else
+              {
+                  //ES OTRO PIM
+                  var nodoPIM = getPIM();
+                  console.log("Redirigiendo a:" + nodoPIM.nodo + ":" + puerto + "/PIM/enriquecerProducto"+rebote);
+                  const options = {
+                    url: "http://"+nodoPIM.nodo + ":" + puerto + "/PIM/enriquecerProducto"+rebote,
+                    method:'GET',
+                    json: true,
+                    body: req.body
+                  };
+            
+                  request(options,  (err, response, body) => 
+                  {
+                    if (err) { return console.log(err); }
+                    res.send(body);
+                  });
+              }
+              //-------------------------------------
+            }
+            else
+            {
+              console.log("Token incorrecto: ", bodyAuth2);
+              res.send("Token Incorrecto");
+            }
+          });
+        }
       });
-  }
 });
 
 app.get('/Bodega/obtenerInventario', function (req, res) {
-  console.log(req.body.length);
-  /*
-  if(tengoPIM)
-  {
-    //ES ESTE MISMO PIM
-    res.send('MI PIM');
-  }
-  else
-  {*/
-    console.log(req.body.destino);
-      var nodo = tabla[req.body.destino];
-      console.log("Redirigiendo a:" + nodo.nodo + ":" + puerto + "/Bodega/obtenerInventario"+rebote);
-      const options = {
-        url: "http://"+nodo.nodo + ":" + puerto + "/Bodega/obtenerInventario"+rebote,
-        method:'GET',
-        json: true,
-        body: req.body
-      };
-
-      request(options,  (err, response, body) => 
+  
+const optionsAuth = {
+  url: "http://"+authdir + ":" + authport + "/getToken",
+  method:'POST',
+  json: true, 
+  body://req.body
+      { 
+        //client_id: req.body.client_id,
+        //client_secret: req.body.client_secret
+        client_id: 1,
+        client_secret: "secret1"
+       }
+  };
+  request(optionsAuth,  (err, responseAuth, bodyAuth2) => 
+    {
+      if (err) { return console.log(err); }
+      //console.log(body.access_token);
+      if(bodyAuth2.success)
       {
-        if (err) { return console.log(err); }
-        res.send(body);
-      });
-  //}
+        console.log("*** Se intentó un acceso no autorizado: incorrecto client_id o client_secret");
+        res.send("Credenciales incorrectas");
+      }
+      else
+      {
+        const options2 = {
+          url: "http://"+authdir + ":" + authport + "/validateToken",
+          method:'GET',
+          json:true,
+          headers:{
+            'Authorization':bodyAuth2.access_token
+          }
+        };
+        request(options2,  (err, responseAuth2, bodyAuth2) => 
+        {
+          if (err) { return console.log(err); }
+          if(bodyAuth2.success)
+          {
+            //console.log(req.body.destino);
+            var nodo = tabla[req.body.destino];
+            console.log("/Bodega/obtenerInventario: redirigiendo a:" + nodo.nodo + ":" + puerto + "/Bodega/obtenerInventario"+rebote);
+            const options = {
+              url: "http://"+nodo.nodo + ":" + puerto + "/Bodega/obtenerInventario"+rebote,
+              method:'GET',
+              json: true,
+              body: req.body
+            };
 
+            request(options,  (err, response, body) => 
+            {
+              if (err) { return console.log(err); }
+              res.send(body);
+            });
+          }
+          else
+          {
+            console.log("Token incorrecto: ", bodyAuth2);
+            res.send("Token Incorrecto");
+          }
+        });
+      }
+    });
 });
 
 app.get('/Bodega/realizarDespacho', function (req, res) {
-  console.log("Realizar Despacho");
-  console.log(req.body.length);
   
-  console.log(req.body.destino);
-  var nodo = tabla[req.body.destino];
-  console.log("Redirigiendo a:" + nodo.nodo + ":" + puerto + "/Bodega/realizarDespacho"+rebote);
-  const options = {
-    url: "http://"+nodo.nodo + ":" + puerto + "/Bodega/realizarDespacho"+rebote,
-    method:'GET',
-    json: true,
-    body: req.body
+const optionsAuth = {
+  url: "http://"+authdir + ":" + authport + "/getToken",
+  method:'POST',
+  json: true, 
+  body://req.body
+      { 
+        //client_id: req.body.client_id,
+        //client_secret: req.body.client_secret
+        client_id: 1,
+        client_secret: "secret1"
+       }
   };
+  request(optionsAuth,  (err, responseAuth, bodyAuth2) => 
+    {
+      if (err) { return console.log(err); }
+      //console.log(body.access_token);
+      if(bodyAuth2.success)
+      {
+        console.log("*** Se intentó un acceso no autorizado: incorrecto client_id o client_secret");
+        res.send("Credenciales incorrectas");
+      }
+      else
+      {
+        const options2 = {
+          url: "http://"+authdir + ":" + authport + "/validateToken",
+          method:'GET',
+          json:true,
+          headers:{
+            'Authorization':bodyAuth2.access_token
+          }
+        };
+        request(options2,  (err, responseAuth2, bodyAuth2) => 
+        {
+          if (err) { return console.log(err); }
+          if(bodyAuth2.success)
+          {
+            console.log("Realizar Despacho");
+            console.log(req.body.length);
+            
+            console.log(req.body.destino);
+            var nodo = tabla[req.body.destino];
+            console.log("Redirigiendo a:" + nodo.nodo + ":" + puerto + "/Bodega/realizarDespacho"+rebote);
+            const options = {
+              url: "http://"+nodo.nodo + ":" + puerto + "/Bodega/realizarDespacho"+rebote,
+              method:'GET',
+              json: true,
+              body: req.body
+            };
 
-  request(options,  (err, response, body) => 
-  {
-    if (err) { return console.log(err); }
-    res.send(body);
-  });
-      
+            request(options,  (err, response, body) => 
+            {
+              if (err) { return console.log(err); }
+              res.send(body);
+            });
+                
+          }
+          else
+          {
+            console.log("Token incorrecto: ", bodyAuth2);
+            res.send("Token Incorrecto");
+          }
+        });
+      }
+    });
+  
 });
 
 app.post('/test/test', function(req, res) {
@@ -200,7 +374,7 @@ function test()
   body.destino = "nodoamerica.grupo4.com";
 
   var options = {
-    url: 'http://localhost:'+puerto+'/Bodega/obtenerInventario',
+    url: 'http://35.245.176.14:'+puerto+'/Bodega/obtenerInventario',
     method: 'GET',
     /* */
     json:true,
@@ -265,4 +439,53 @@ function checkOrigen(destino)
 }
 
 cargarNodos();
-test();
+//test();
+
+/*
+const optionsAuth = {
+    url: "http://"+authdir + ":" + authport + "/getToken",
+    method:'POST',
+    json: true, 
+    body://req.body
+        { 
+          //client_id: req.body.client_id,
+          //client_secret: req.body.client_secret
+          client_id: 1,
+          client_secret: "secret1"
+         }
+    };
+    request(optionsAuth,  (err, responseAuth, bodyAuth2) => 
+      {
+        if (err) { return console.log(err); }
+        //console.log(body.access_token);
+        if(bodyAuth2.success)
+        {
+          console.log("*** Se intentó un acceso no autorizado: incorrecto client_id o client_secret");
+          res.send("Credenciales incorrectas");
+        }
+        else
+        {
+          const options2 = {
+            url: "http://"+authdir + ":" + authport + "/validateToken",
+            method:'GET',
+            json:true,
+            headers:{
+              'Authorization':bodyAuth2.access_token
+            }
+          };
+          request(options2,  (err, responseAuth2, bodyAuth2) => 
+          {
+            if (err) { return console.log(err); }
+            if(bodyAuth2.success)
+            {
+              
+            }
+            else
+            {
+              console.log("Token incorrecto: ", bodyAuth2);
+              res.send("Token Incorrecto");
+            }
+          });
+        }
+      });
+*/
