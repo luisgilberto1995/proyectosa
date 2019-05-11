@@ -447,7 +447,7 @@ function checkOrigen(destino)
 }
 
 cargarNodos();
-test();
+//test();
 
 /*
 const optionsAuth = {
