@@ -101,7 +101,6 @@ app.get('/tienda/colocarOrden', function (req, res)
   res.send({response: true});
 });
 
-
 app.get('/tienda/obtenerInventario', function (req, res) {
 
   var body = {
@@ -109,11 +108,11 @@ app.get('/tienda/obtenerInventario', function (req, res) {
     [
       {
         sku:"sku1",
-        inventario:3,
+        inventario:9,
       },
       {
         sku:"sku2",
-        inventario:1,
+        inventario:10,
       },
       {
         sku:"sku3",
@@ -128,12 +127,17 @@ app.get('/tienda/obtenerInventario', function (req, res) {
   res.send(body);
 });
 
+app.get('/reporte', function (req, res) 
+{
+  var cadena = "";
+  res.send(body);
+});
+
 //------------CLIENTE-----------------
 // Consultar catalogo (categorias)
 // Seleccionar un producto random
 // Consultar disponibilidad
 //http://localhost:1234/tienda/colocarOrden (producto aleatorio de la 1era consulta, cantidad aleatoria según conf)
-
 
 //------------------------------------
 
@@ -144,8 +148,8 @@ async function start()
   var indiceTienda = 0;
   for(let i = 0; i < config.ordenes; i++)
   {
-    setInterval(enviarOrden, config.tiempoMuerto);
-    //enviarOrden();
+    console.log("...................ORDEN..................");
+    setTimeout(enviarOrden, config.tiempoMuerto);
   }
 }
 
@@ -179,8 +183,8 @@ function consultarInventario(body, tiendadir)
 {
   var cantidadProducto = Math.floor(Math.random() * (+config.rangoFinalCantidadProductos - +config.rangoInicialCantidadProductos)) + +config.rangoInicialCantidadProductos;
   var indiceProducto = Math.floor(Math.random() * (+body.productos.length - +0)) + +0;
-  console.log("Cantidad para la orden: "+cantidadProducto);
-  console.log("Producto escogido: "+indiceProducto+" ", body.productos[indiceProducto]);
+  //console.log("Cantidad para la orden: "+cantidadProducto);
+  //console.log("Producto escogido: "+indiceProducto+" ", body.productos[indiceProducto]);
 
   var optionsObtenerInventario = {
     url: 'http://'+tiendadir+':'+tiendaport+'/tienda/obtenerInventario',
@@ -195,20 +199,19 @@ function consultarInventario(body, tiendadir)
     {
         for(var p in bodyProducto.products)
         {
-            console.log(bodyProducto.products[p].sku);
+            //console.log(bodyProducto.products[p].sku);
             if(bodyProducto.products[p].sku === body.productos[indiceProducto].sku)
             {
-              console.log("TiendaInventario: ", bodyProducto.products[p]) // Print the shortened url.
-              console.log(cantidadProducto+" - "+bodyProducto.products[p].inventario);
+              //console.log("TiendaInventario: ", bodyProducto.products[p]) // Print the shortened url.
+              console.log("cantidad, inventario, estado: "+cantidadProducto+" - "+bodyProducto.products[p].inventario + " - "+body.productos[indiceProducto].activo);
               if(cantidadProducto <= bodyProducto.products[p].inventario && body.productos[indiceProducto].activo)
               {
-                console.log("Colocando orden!");
+                //console.log("Colocando orden!");
                 colocarOrden(bodyProducto, tiendadir);
               }
               else
               {
                 console.log("Orden fallida, no hay suficiente producto para colocar una orden o el producto no esta activo.");
-                
                 
               }
               break;
@@ -234,7 +237,7 @@ function colocarOrden(producto, tiendadir)
   };
   request(optionsColocarOrden, function (error, response, bodyResponse) {
     if (!error && response.statusCode == 200) {
-      console.log("orden colocada: ", bodyResponse);
+      //console.log("orden colocada: ", bodyResponse);
 
       if(bodyResponse.response)
       {

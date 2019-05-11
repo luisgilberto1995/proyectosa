@@ -1,6 +1,6 @@
 {
     "rangoInicialCantidadProductos": 1,
-    "rangoFinalCantidadProductos": 10,
+    "rangoFinalCantidadProductos": 25,
     "tiempoMuerto":5000,
     "clientes":1,
     "tiendas":["localhost", "localhost", "localhost"],
