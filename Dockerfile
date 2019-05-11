@@ -1,4 +1,5 @@
-FROM basesa
+#FROM basesa
+FROM node
 # Set the working directory to /app
 WORKDIR /app/
 # Copy the current directory contents into the container at /app
