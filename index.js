@@ -1,6 +1,7 @@
 'use strict';
 
 //--------------Servidor Web------------
+var request = require('request');
 var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
@@ -17,17 +18,26 @@ const config = require('./config/esbconf.json');
 var tabla = [];
 var tengoPIM = false;
 var dirPIM = "localhost";
-var puerto = 80;
+var puerto = 8080;
 var rebote = "2";
 var authdir = "35.243.184.92";
-var authport = 8080;
-var pimdir = "";
-var pimport = "";
-//---------------------------------------
+var authport = 8086;
+var pimdir = "35.235.77.214";
+var pimport = 8082;
 
-var request = require('request');
-//const fs = require('fs')
-//var jsonData = JSON.parse(fs.readFileSync('esbconf.json', 'utf-8'))
+const optionsAuth = {
+  url: "http://"+authdir + ":" + authport + "/getToken",
+  method:'POST',
+  json: true, 
+  body://req.body
+      { 
+        //client_id: req.body.client_id,
+        //client_secret: req.body.client_secret
+        client_id: 1,
+        client_secret: "secret1"
+       }
+  };
+//---------------------------------------
 
 app.listen(puerto, function () {
   console.log('Servidor web en el puerto '+puerto+'!');
@@ -71,18 +81,6 @@ app.get('/PIM/obtenerCatalogo2', function (req, res) {
 
 app.get('/PIM/obtenerCatalogo', function (req, res) 
 {
-  const optionsAuth = {
-  url: "http://"+authdir + ":" + authport + "/getToken",
-  method:'POST',
-  json: true, 
-  body://req.body
-      { 
-        //client_id: req.body.client_id,
-        //client_secret: req.body.client_secret
-        client_id: 1,
-        client_secret: "secret1"
-       }
-  };
   request(optionsAuth,  (err, responseAuth, bodyAuth2) => 
     {
       if (err) { return console.log(err); }
@@ -94,6 +92,12 @@ app.get('/PIM/obtenerCatalogo', function (req, res)
       }
       else
       {
+        console.log("paso1");
+        if(!bodyAuth2.scope.includes("/PIM/obtenerCatalogo"))
+        {
+          res.send('No se tiene acceso al metodo.');
+          return;
+        }
         const options2 = {
           url: "http://"+authdir + ":" + authport + "/validateToken",
           method:'GET',
@@ -111,27 +115,43 @@ app.get('/PIM/obtenerCatalogo', function (req, res)
             {
               //ES ESTE MISMO PIM
               //Metodo con direccion del pim
-              res.send('MI PIM');
+              //res.send('MI PIM');
+              var options = {
+                url: "http://"+pimdir + ":" + pimport + "/PIM/obtenerCatalogo",
+                method:'GET',
+                json:true
+                /*headers: {
+                    'Accept': 'application/json',
+                    'Accept-Charset': 'utf-8',
+                }*/
+              };
+              request(options,  (err, response, body) => 
+                {
+                  if (err) { return console.log(err); }
+                  //console.log(body);
+                  res.send(body);
+                });
             }
             else
             {
                 //ES OTRO PIM
                 var nodoPIM = getPIM();
                 console.log("Redirigiendo a:" + nodoPIM.nodo + ":" + puerto + "/PIM/obtenerCatalogo"+rebote);
-                const options = {
-                  url: "http://"+nodoPIM.nodo + ":" + puerto + "/PIM/obtenerCatalogo"+rebote,
-                  method:'GET',
-                  json:true
-                  /*headers: {
-                      'Accept': 'application/json',
-                      'Accept-Charset': 'utf-8',
-                  }*/
-                };
+                
           
+      var options = {
+        url: "http://"+nodoPIM.nodo + ":" + puerto + "/PIM/obtenerCatalogo"+rebote,
+        method:'GET',
+        json:true
+        /*headers: {
+            'Accept': 'application/json',
+            'Accept-Charset': 'utf-8',
+        }*/
+      };
                 request(options,  (err, response, body) => 
                 {
                   if (err) { return console.log(err); }
-                  console.log(body);
+                  //console.log(body);
                   res.send(body);
                 });
             }
@@ -148,18 +168,6 @@ app.get('/PIM/obtenerCatalogo', function (req, res)
 
 app.get('/PIM/enriquecerProducto', function (req, res) {
 
-  const optionsAuth = {
-    url: "http://"+authdir + ":" + authport + "/getToken",
-    method:'POST',
-    json: true, 
-    body://req.body
-        { 
-          //client_id: req.body.client_id,
-          //client_secret: req.body.client_secret
-          client_id: 1,
-          client_secret: "secret1"
-         }
-    };
     request(optionsAuth,  (err, responseAuth, bodyAuth2) => 
       {
         if (err) { return console.log(err); }
@@ -171,6 +179,11 @@ app.get('/PIM/enriquecerProducto', function (req, res) {
         }
         else
         {
+          if(!bodyAuth2.scope.includes("/PIM/enriquecerProducto"))
+          {
+            res.send('No se tiene acceso al metodo.');
+            return;
+          }
           const options2 = {
             url: "http://"+authdir + ":" + authport + "/validateToken",
             method:'GET',
@@ -223,18 +236,6 @@ app.get('/PIM/enriquecerProducto', function (req, res) {
 
 app.get('/Bodega/obtenerInventario', function (req, res) {
   
-const optionsAuth = {
-  url: "http://"+authdir + ":" + authport + "/getToken",
-  method:'POST',
-  json: true, 
-  body://req.body
-      { 
-        //client_id: req.body.client_id,
-        //client_secret: req.body.client_secret
-        client_id: 1,
-        client_secret: "secret1"
-       }
-  };
   request(optionsAuth,  (err, responseAuth, bodyAuth2) => 
     {
       if (err) { return console.log(err); }
@@ -246,6 +247,11 @@ const optionsAuth = {
       }
       else
       {
+        if(!bodyAuth2.scope.includes("/Bodega/obtenerInventario"))
+        {
+          res.send('No se tiene acceso al metodo.');
+          return;
+        }
         const options2 = {
           url: "http://"+authdir + ":" + authport + "/validateToken",
           method:'GET',
@@ -287,18 +293,6 @@ const optionsAuth = {
 
 app.get('/Bodega/realizarDespacho', function (req, res) {
   
-const optionsAuth = {
-  url: "http://"+authdir + ":" + authport + "/getToken",
-  method:'POST',
-  json: true, 
-  body://req.body
-      { 
-        //client_id: req.body.client_id,
-        //client_secret: req.body.client_secret
-        client_id: 1,
-        client_secret: "secret1"
-       }
-  };
   request(optionsAuth,  (err, responseAuth, bodyAuth2) => 
     {
       if (err) { return console.log(err); }
@@ -310,6 +304,11 @@ const optionsAuth = {
       }
       else
       {
+        if(!bodyAuth2.scope.includes("/Bodega/realizarDespacho"))
+        {
+          res.send('No se tiene acceso al metodo.');
+          return;
+        }
         const options2 = {
           url: "http://"+authdir + ":" + authport + "/validateToken",
           method:'GET',
@@ -383,15 +382,18 @@ function test()
     /* */
   };
 
-  request(options, function (error, response, body) {
+  var retorno = request(options, function (error, response, body) {
     if (!error && response.statusCode == 200) {
       console.log("Fin: ", body) // Print the shortened url.
+      return false;
     }
     else
     {
       console.log("ups!", error);
+      return true;
     }
   });
+  //console.log("->", retorno);
 }
 
 
