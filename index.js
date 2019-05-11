@@ -272,9 +272,9 @@ app.get('/Bodega/obtenerInventario', function (req, res) {
           {
             //console.log(req.body.destino);
             var nodo = tabla[req.body.destino];
-            console.log("/Bodega/obtenerInventario: redirigiendo a:" + nodo.nodo + ":" + puerto + "/Bodega/obtenerInventario"+rebote);
+            console.log("/Bodega/obtenerInventario: redirigiendo a:" + req.body.destino + ":" + puerto + "/Bodega/obtenerInventario"+rebote);
             const options = {
-              url: "http://"+nodo.nodo + ":" + puerto + "/Bodega/obtenerInventario"+rebote,
+              url: "http://"+ req.body.destino + ":" + puerto + "/Bodega/obtenerInventario"+rebote,
               method:'GET',
               json: true,
               body: req.body
