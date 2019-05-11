@@ -23,6 +23,7 @@ var rebote = "2";
 var fallidas = 0;
 var total = 0;
 var tiempos = [];
+var periodo = 0;
 //---------------------------------------
 
 function cargarConfiguracion()
@@ -328,6 +329,11 @@ function checkOrigen(destino)
   return false;
 }
 
+function lanzarPeriodo()
+{
+  test();
+  periodo++;
+}
 
 console.log("Cliente de la tienda");
 //cargarConfiguracion();

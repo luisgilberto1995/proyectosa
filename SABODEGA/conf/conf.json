@@ -1,0 +1,7 @@
+
+{
+  "nombre": "bodega1.compania.com",
+  "nodo": "nodoamerica.grupo4.com",
+  "client_id": 1,
+  "client_secret": "client_secret de oAuth2"
+}

@@ -37,6 +37,10 @@ const optionsAuth = {
         client_secret: "secret1"
        }
   };
+  var optionsGet = {
+    method: 'GET',
+    json:true
+  }
 //---------------------------------------
 
 app.listen(puerto, function () {
@@ -116,16 +120,9 @@ app.get('/PIM/obtenerCatalogo', function (req, res)
               //ES ESTE MISMO PIM
               //Metodo con direccion del pim
               //res.send('MI PIM');
-              var options = {
-                url: "http://"+pimdir + ":" + pimport + "/PIM/obtenerCatalogo",
-                method:'GET',
-                json:true
-                /*headers: {
-                    'Accept': 'application/json',
-                    'Accept-Charset': 'utf-8',
-                }*/
-              };
-              request(options,  (err, response, body) => 
+              optionsGet.url = "http://"+pimdir + ":" + pimport + "/PIM/obtenerCatalogo";
+              optionsGet.body = req.body;
+              request(optionsGet,  (err, response, body) => 
                 {
                   if (err) { return console.log(err); }
                   //console.log(body);
@@ -192,17 +189,25 @@ app.get('/PIM/enriquecerProducto', function (req, res) {
               'Authorization':bodyAuth2.access_token
             }
           };
-          request(options2,  (err, responseAuth2, bodyAuth2) => 
+          request(options2, (err, responseAuth2, bodyAuth2) => 
           {
             if (err) { return console.log(err); }
             if(bodyAuth2.success)
             {
               //----------------------------------
-              console.log("> "+req.body.length);
+              //console.log("> "+req.body.length);
               if(tengoPIM)
               {
                 //ES ESTE MISMO PIM
-                res.send('MI PIM');
+                //res.send('MI PIM');
+                optionsGet.url = "http://"+pimdir + ":" + pimport + "/PIM/enriquecerProducto";
+                optionsGet.body = req.body;
+                request(optionsGet,  (err, response, body) => 
+                  {
+                    if (err) { return console.log(err); }
+                    //console.log(body);
+                    res.send(body);
+                  });
               }
               else
               {
@@ -367,14 +372,14 @@ function test()
   console.log("TEST:");
   var body = {};
   var arreglo =[];
-  arreglo.push("sku1");
-  arreglo.push("sku2");
-  arreglo.push("sku3");
+  arreglo.push("ab-1");
+  arreglo.push("ab-2");
+  arreglo.push("ab-3");
   body.arreglo = arreglo;
   body.destino = "nodoamerica.grupo4.com";
 
   var options = {
-    url: 'http://35.245.176.14:'+puerto+'/Bodega/obtenerInventario',
+    url: 'http://localhost:'+puerto+'/PIM/enriquecerProducto',
     method: 'GET',
     /* */
     json:true,
@@ -384,7 +389,7 @@ function test()
 
   var retorno = request(options, function (error, response, body) {
     if (!error && response.statusCode == 200) {
-      console.log("Fin: ", body) // Print the shortened url.
+      console.log("...Fin: ", body) // Print the shortened url.
       return false;
     }
     else
@@ -442,7 +447,7 @@ function checkOrigen(destino)
 }
 
 cargarNodos();
-//test();
+test();
 
 /*
 const optionsAuth = {
