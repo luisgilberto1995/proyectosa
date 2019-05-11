@@ -18,13 +18,13 @@ const config = require('./config/esbconf.json');
 var tabla = [];
 var tengoPIM = false;
 var dirPIM = "localhost";
-var puerto = 8080;
+var puerto = 8081;
 var rebote = "2";
 var authdir = "35.243.184.92";
 var authport = 8086;
 var pimdir = "35.235.77.214";
 var pimport = 8082;
-
+//----------------------------------------
 const optionsAuth = {
   url: "http://"+authdir + ":" + authport + "/getToken",
   method:'POST',

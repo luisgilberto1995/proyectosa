@@ -3,7 +3,7 @@
 var mysql = require('mysql');
 var request = require('request');
 
-const initConf = require('./config/conf.json');
+const initConf = require('./conf/conf.json');
 
 const port = 3006;
 const express = require('express');
@@ -25,11 +25,11 @@ var periodox = 0;
 * */
 
 var con = mysql.createConnection({
-    host: process.env.DATABASE_HOST || 'ec2-54-163-173-31.compute-1.amazonaws.com',
+    //host: process.env.DATABASE_HOST || 'ec2-54-163-173-31.compute-1.amazonaws.com',
+    host:'127.0.0.1',
     user: "root",
-    password: "newpassword",
-    port: '3306',
-    database: "bodega"
+    password: "root",
+    database: "bodegadb"
 });
 
 con.connect(function(err) {
@@ -105,13 +105,15 @@ app.post('/realizarDespacho', (req, res)=>{
         }
     });
 });
+
 //Init
 function correrPeriodo() {
-    var sql1 = "DELETE FROM product";
+    var sql1 = "DELETE FROM producto";
     con.query(sql1, function (err, result) {
-        request.get('http://localhost:3000/PIM/obtenerCatalogo', function (error, response, body) {
-            var catalogo = JSON.parse(body);
-
+        request.get({url: 'http://localhost:8080/PIM/obtenerCatalogo', json:true}, function (error, response, body) {
+            var catalogo = body;
+            console.log(body);
+            return;
             catalogo.productos.forEach(function (element) {
                 var inv = Math.floor(Math.random() * 101);
                 if (inv > 30 && inv < 51) {
