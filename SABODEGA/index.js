@@ -27,7 +27,7 @@ var reporteSolicitudes = [];
 
 var con = mysql.createConnection({
     //host: process.env.DATABASE_HOST || 'ec2-54-163-173-31.compute-1.amazonaws.com',
-    host:'127.0.0.1',
+    host:'35.194.175.162',
     user: "root",
     password: "root",
     database: "bodegadb"
