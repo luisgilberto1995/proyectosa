@@ -94,18 +94,12 @@ app.post('/Bodega/realizarDespacho', (req, res)=>
                 {
                     if(err){console.log(err);}
                     else{console.log("Updated...");}
-                })
+                });
             }
             else
             {
                 //failure
                 res.send({resultado:false});
-            }
-            products.push({sku: producto, inventario: element.inventario});
-            if(indice >= arreglo.length - 1)
-            {
-                var respuesta = {products: products};
-                res.send(respuesta);
             }
         });
     });
@@ -119,121 +113,6 @@ app.get('/', (req, res)=>
   res.send('\n\nRealizando cambio de periodo')
 });
 
-app.get('/repote/periodo',(req,res)=>{
-    var sql = "SELECT COUNT(periodo) AS total ,tipo, periodo FROM reporte group by tipo,periodo order by tipo;";
-    var ret = "Se crearon 25 productos\n";
-    con.query(sql, function (err, result)
-    {
-        var periodo =0;
-        var total=25;
-        var x =0;
-        result.forEach(function (element) {
-
-            if(element.tipo==1)
-            {
-                ret+= "durante el periodo "+element.periodo+" se insertaron "+element.total+" productos con inventario\n";
-            }
-            else if(element.tipo==2)
-            {
-                ret+= "durante el periodo "+element.periodo+" se insertaron "+element.total+"productos sin inventario\n";
-            }
-            else if(element.tipo==3)
-            {
-                ret+= "durante el periodo "+element.periodo+" se consulto "+element.total+" veces obtener inventario\n";
-            }
-            else if(element.tipo==4)
-            {
-                ret+= "durante el periodo "+element.periodo+" se despachó "+element.total+" veces correctamente\n";
-            }
-            else
-            {
-                ret+= "durante el periodo "+element.periodo+" se no se pudo despachar "+element.total+" veces\n";
-            }
-            x++;
-            if(x==result.length)
-            {
-                res.send(ret);
-            }
-        });
-    });
-
-
-});
-
-app.get('/repote/tienda',(req,res)=>{
-    var sql = "SELECT COUNT(tienda) AS total ,tipo,tienda FROM reporte group by tipo,tienda order by tipo;";
-    var ret = "Se crearon 25 productos\n";
-    con.query(sql, function (err, result)
-    {
-        var periodo =0;
-        var total=25;
-        var x =0;
-        result.forEach(function (element) {
-
-            if(element.tipo==3)
-            {
-                ret+= "desde la tienda "+element.tienda+" se consulto "+element.total+" veces obtener inventario\n";
-            }
-            else if(element.tipo==4)
-            {
-                ret+= "desde la tienda "+element.tienda+" se despachó "+element.total+" veces correctamente\n";
-            }
-            else if(element.tipo==5)
-            {
-                ret+= "desde la tienda "+element.tienda+" se no se pudo despachar "+element.total+" veces\n";
-            }
-            x++;
-            if(x==result.length)
-            {
-                res.send(ret);
-            }
-        });
-    });
-
-
-});
-
-app.get('/repote/total',(req,res)=>{
-    var sql = "SELECT COUNT(tienda) AS total ,tipo FROM reporte group by tipo order by tipo;";
-    var ret = "Se crearon 25 productos\n";
-    con.query(sql, function (err, result)
-    {
-        var periodo =0;
-        var total=25;
-        var x =0;
-        result.forEach(function (element) {
-            if(element.tipo==1)
-            {
-                ret+= "Se insertaron en total "+element.total+" productos con inventario\n";
-            }
-            else if(element.tipo==2)
-            {
-                ret+= "Se insertaron en total "+element.total+"productos sin inventario\n";
-            }
-            else if(element.tipo==3)
-            {
-                ret+= "Se consulto en total  "+element.total+" veces obtener inventario\n";
-            }
-            else if(element.tipo==4)
-            {
-                ret+= "Se despachó en total "+element.total+" veces correctamente\n";
-            }
-            else
-            {
-                ret+= "No se pudo despachar en total "+element.total+" veces\n";
-            }
-
-            x++;
-            if(x==result.length)
-            {
-                res.send(ret);
-            }
-        });
-    });
-
-
-});
-
 app.listen(port, function () {
     console.log("Escuchando en el puerto: "+ port);
 });
@@ -241,8 +120,8 @@ app.listen(port, function () {
 
 function correrPeriodo() 
 {
-    console.log("\n\nCorriendo periodo...")
     periodo++;
+    console.log("\n\nCorriendo periodo " + periodo + "...");
     var deletequery = "DELETE FROM producto";
     con.query(deletequery, function (err, result) {
         var options = {
