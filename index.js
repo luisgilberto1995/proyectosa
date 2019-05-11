@@ -418,7 +418,7 @@ function cargarNodos()
     {
         dirPIM = nodo.nodo;
         tengoPIM = true;
-        console.log("ESTE ES EL PIM");
+        console.log("ESTE NODO TIENE EL PIM");
     }
     tabla[nodo.nodo] = nodo;
   });

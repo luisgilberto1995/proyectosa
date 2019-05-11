@@ -5,24 +5,25 @@ var request = require('request');
 
 const initConf = require('./conf/conf.json');
 
-const port = 3006;
+const port = 8083;
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
 var request = require('request');
 
-var periodox = 0;
-
-/*
-* coninv = 1
-* sininv = 2
-* obtenerinv = 3
-* despachocorr=4
-* despachoinco = 5
-* */
+//-------------GLOBALES--------------
+var periodo = 0;
+var bodyGeneral = {client_id:1, client_secret:"secret2"}
+var esbdir = "35.245.176.14";
+var esbport = 8081;
+var limInferior = 0;
+var limSuperior = 100;
+var reporte1noinventario = [];
+var reporte1inventario = [];
+var reporteSolicitudes = [];
+//-----------------------------------
 
 var con = mysql.createConnection({
     //host: process.env.DATABASE_HOST || 'ec2-54-163-173-31.compute-1.amazonaws.com',
@@ -34,123 +35,89 @@ var con = mysql.createConnection({
 
 con.connect(function(err) {
     if (err) throw err;
-    console.log('Conectado a la BD MySQL');
+    console.log('conected to MySQL database!');
 
 });
 
-app.get('/', function (req, res) {
-  res.send('<h1>Hello World! BODEGA</h1>')
-})
-
-app.get('/obtenerInventario', (req, res)=>{
+app.get('/Bodega/obtenerInventario', (req, res)=>{
     var body = req.body;
-    var pais = body.pais;
-    let productos2= [];
-    let finish = body.arreglo.length;
-    for (let i=0; i<body.arreglo.length; i++) {
-        //console.log(i);
-        var sql = "SELECT a.sku,a.inventario FROM product a" +
-            " WHERE a.sku =  \'"+body.arreglo[i]+"\';";
-        con.query(sql, function (err, result) {
-            if (err) throw err;
-            result.forEach(function (element) {
-                var pro = new Object();
-                pro.sku = element.sku;
-                pro.inventario = element.inventario;
-                productos2.push({
-                    "sku":pro.sku,
-                    "inventario":pro.inventario
-                })
-                if(i==finish-1)
+    if(!body){console.log("no hay body valido"); res.send("no hay body valido"); return;}
+    
+    var arreglo = req.body.arreglo;
+    if(!arreglo){console.log("no hay arreglo valido"); res.send("no hay body valido"); return;}
+    var indice = 0;
+    var products = [];
+
+    arreglo.forEach(function(producto)
+    {
+        var selectquery = "SELECT inventario FROM producto WHERE sku = '"+producto+"';";
+        con.query(selectquery, function (err, result) 
+        {
+            //console.log(result);
+            result.forEach(function (element) 
+            {
+                //console.log(element.inventario);
+                products.push({sku: producto, inventario: element.inventario});
+                if(indice >= arreglo.length - 1)
                 {
-                    var ret = JSON.stringify(productos2)
-                    ret = "{\"products\":"+ret+"}";
-                    var sql2 = "INSERT INTO reporte (periodo,tipo,pais)" +
-                        "VALUES(" + periodox + "," + 3 +"'"+pais+"');";
-                    con.query(sql2, function (err, result) {
-                        res.send(ret);
-                    });
-
+                    var respuesta = {products: products};
+                    res.send(respuesta);
                 }
-            })
-        });
-    }
-});
-
-app.post('/realizarDespacho', (req, res)=>{
-    let element = req.body;
-    var sql = "SELECT a.sku,a.inventario FROM product a" +
-        " WHERE a.sku =  \'"+element.sku+"\';";
-    con.query(sql, function (err, result) {
-        if (err) throw err;
-        if(result[0].inventario >= element.cantidad) {
-            var tot = result[0].inventario - element.cantidad;
-            var sql = "UPDATE product"  +
-                " SET inventario = "+ tot +
-                " WHERE sku =  \'" + element.sku + "\';";
-            con.query(sql, function (err, result) {
-                var sql2 = "INSERT INTO reporte (periodo,tipo,pais)" +
-                    "VALUES(" + periodox + "," + 4 +"'');";
-                con.query(sql2, function (err, result) {
-                    res.send({resultado: true});
-                });
             });
-        }
-        else{
-            var sql2 = "INSERT INTO reporte (periodo,tipo,pais)" +
-                "VALUES(" + periodox + "," + 5 +"'"+pais+"');";
-        con.query(sql2, function (err, result) {
-            res.send({resultado: false});
+            indice++;
         });
-        }
     });
 });
 
-//Init
-function correrPeriodo() {
-    var sql1 = "DELETE FROM producto";
-    con.query(sql1, function (err, result) {
-        request.get({url: 'http://localhost:8080/PIM/obtenerCatalogo', json:true}, function (error, response, body) {
-            var catalogo = body;
-            console.log(body);
-            return;
-            catalogo.productos.forEach(function (element) {
-                var inv = Math.floor(Math.random() * 101);
-                if (inv > 30 && inv < 51) {
-                    inv = 0;
-                }
-                    var sql = "INSERT INTO product (sku,name,inventario)" +
-                        "VALUES('" + element.sku + "','" + element.nombre + "'," + inv + ");";
-                    con.query(sql, function (err, result) {
-                        var tipo = 1;
-                        if(inv==0)
-                            tipo=2;
-                        var sql2 = "INSERT INTO reporte (periodo,tipo)" +
-                            "VALUES(" + periodox + "," + tipo + ");";
-                        con.query(sql2, function (err, result) {
+app.post('/Bodega/realizarDespacho', (req, res)=>
+{
+    var productoDespacho = req.body;
+    if(!productoDespacho){console.log("body invalido");res.send("body invalido");return;}
+    var sku = productoDespacho.sku;
+    var cantidad = productoDespacho.cantidad;
+    var direccion = productoDespacho.direccion;
 
-                            console.log("producto insertado");
-                        });
-                    });
-
-            });
+    var selectquery = "SELECT inventario FROM producto WHERE sku = '"+sku+"';";
+    con.query(selectquery, function (err, result) 
+    {
+        //console.log(result);
+        result.forEach(function (element) 
+        {
+            //console.log(element.inventario);
+            console.log(cantidad+" - "+element.inventario);
+            if(cantidad <= element.inventario)
+            {
+                //success
+                res.send({resultado:true});
+                var updatequery = "UPDATE producto SET inventario = "+(element.inventario - cantidad)+" WHERE sku = '"+sku+"'";
+                con.query(updatequery, function (err, result) 
+                {
+                    if(err){console.log(err);}
+                    else{console.log("Updated...");}
+                })
+            }
+            else
+            {
+                //failure
+                res.send({resultado:false});
+            }
+            products.push({sku: producto, inventario: element.inventario});
+            if(indice >= arreglo.length - 1)
+            {
+                var respuesta = {products: products};
+                res.send(respuesta);
+            }
         });
     });
-}
-
-app.post('/periodo', (req, res)=>{
-   Init();
-   periodox++;
 });
 
 
-/*
-* coninv = 1
-* sininv = 2
-* obtenerinv = 3
-* despachocorr=4
-* despachoinco = 5
-* */
+app.get('/', (req, res)=>
+{
+   correrPeriodo();
+
+  res.send('\n\nRealizando cambio de periodo')
+});
 
 app.get('/repote/periodo',(req,res)=>{
     var sql = "SELECT COUNT(periodo) AS total ,tipo, periodo FROM reporte group by tipo,periodo order by tipo;";
@@ -268,7 +235,61 @@ app.get('/repote/total',(req,res)=>{
 });
 
 app.listen(port, function () {
-    console.log("Servidor iniciado en  el puerto: "+ port);
-    //Init();
-    //periodox++;
+    console.log("Escuchando en el puerto: "+ port);
 });
+
+
+function correrPeriodo() 
+{
+    console.log("\n\nCorriendo periodo...")
+    periodo++;
+    var deletequery = "DELETE FROM producto";
+    con.query(deletequery, function (err, result) {
+        var options = {
+            url: 'http://' + esbdir + ':' + esbport + '/PIM/obtenerCatalogo', 
+            json:true, 
+            body: bodyGeneral
+        };
+        request.get(options, function (error, response, body) {
+            var catalogo = body;
+            //console.log(body);
+            
+            body.productos.forEach(function(producto)
+            {
+                var cantidad = Math.floor(Math.random() * (+limSuperior - +limInferior)) + +limInferior;
+                if(cantidad < 50){cantidad = 0;}
+                var insertquery = "INSERT INTO producto VALUES ('"+producto.sku+"',"
+                +cantidad+");";
+                con.query(insertquery, function (err, result) 
+                {
+                    if(cantidad === 0)
+                    {
+                        if(!reporte1noinventario[periodo])
+                        {
+                            reporte1noinventario[periodo] = 1;
+                        }
+                        else
+                        {
+                            reporte1noinventario[periodo]++;
+                        }
+                    }
+                    else
+                    {
+                        if(!reporte1inventario[periodo])
+                        {
+                            reporte1inventario[periodo] = 1;
+                        }
+                        else
+                        {
+                            reporte1inventario[periodo]++;
+                        }
+                    }
+                    console.log("Random realizado: "+producto.sku+" "+cantidad);
+                });
+            });
+            
+        });
+    });
+}
+
+correrPeriodo();
