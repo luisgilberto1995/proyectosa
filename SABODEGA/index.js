@@ -29,7 +29,7 @@ var con = mysql.createConnection({
     user: "root",
     password: "newpassword",
     port: '3306',
-    database: "company"
+    database: "bodega"
 });
 
 con.connect(function(err) {
@@ -105,8 +105,8 @@ app.post('/realizarDespacho', (req, res)=>{
         }
     });
 });
-
-function Init() {
+//Init
+function correrPeriodo() {
     var sql1 = "DELETE FROM product";
     con.query(sql1, function (err, result) {
         request.get('http://localhost:3000/PIM/obtenerCatalogo', function (error, response, body) {
