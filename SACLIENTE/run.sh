@@ -1,0 +1,2 @@
+# sudo docker run --rm --name procesosa -p 8081:8081 -v /home/luisubuntu/Escritorio/SAESB:/app -e REPO=https://github.com/luisgilberto1995/proyectosa.git -it esb bash
+sudo docker run --rm --name cliente -p 8081:8081 -v /home/luisgil95crash/app/proyectosa/SACLIENTE:/app -e REPO=https://github.com/luisgilberto1995/proyectosa.git -it esb bash

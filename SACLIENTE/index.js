@@ -15,8 +15,10 @@ const config = require('./config/conf.json');
 //---------------------------------------
 //--------------Globales-----------------
 
-var puerto = 3001;
+var puerto = 8084;
 var rebote = "2";
+var tiendaport = 8084;
+//var tiendadir = "localhost";
 
 //---------------------------------------
 //--------------Reportes-----------------
@@ -95,45 +97,14 @@ app.get('/tienda/obtenerCatalogo', function (req, res)
 
 app.get('/tienda/colocarOrden', function (req, res) 
 {
-  //res.send('catalogo JSON');
-  /*var origen = req.body.origen;
-  var destino = req.body.destino;
-  var jwt = req.body.destino;
-  console.log(destino);*/
-
-  if(tengoPIM)
-  {
-    //ES ESTE MISMO PIM
-    res.send('MI PIM');
-  }
-  else
-  {
-      //ES OTRO PIM
-      var nodoPIM = getPIM();
-      console.log("Redirigiendo a:" + nodoPIM.nodo + ":" + puerto + "/PIM/obtenerCatalogo"+rebote);
-      const options = {
-        url: "http://"+nodoPIM.nodo + ":" + puerto + "/PIM/obtenerCatalogo"+rebote,
-        method:'GET',
-        /*headers: {
-            'Accept': 'application/json',
-            'Accept-Charset': 'utf-8',
-        }*/
-      };
-
-      request(options,  (err, response, body) => 
-      {
-        if (err) { return console.log(err); }
-        
-        res.send(body);
-      });
-  }
+  //console.log("-> ", req.body);
+  res.send({response: true});
 });
 
 
 app.get('/tienda/obtenerInventario', function (req, res) {
 
   var body = {
-    
     products:
     [
       {
@@ -149,103 +120,13 @@ app.get('/tienda/obtenerInventario', function (req, res) {
         inventario:50,
       },
       {
-        sku:"sku3",
+        sku:"sku4",
         inventario:100,
       }
     ]
   };
   res.send(body);
 });
-
-app.get('/Bodega/obtenerInventario2', function (req, res) {
-
-  var arregloSKU = req.body.arreglo;
-  //var arregloSKU = req.body;
-  var arregloRespuesta = [];
-  for(var i = 0; i < arregloSKU.length; i++)
-  {
-    //enriquecerProducto
-    /*var objeto = {
-      sku:arregloSKU[i],
-      nombre:"nombre",
-      precio_lista:100.0,
-      descripcion_corta:"descripcion corta",
-      descripcion_larga:"descripcion larga",
-      imagenes: ["img1","img2"],
-      categorias: [1, 2, 3],
-      activo: true
-    };*/
-    //obtenerInventario
-    var objeto = {
-      sku:arregloSKU[i],
-      inventario:Math.floor(Math.random() * (+10 - +1)) + +1,
-    };
-    arregloRespuesta.push(objeto);
-  }
-  //var body = {respuesta: arregloRespuesta};
-  //res.send(JSON.stringify(body));
-  res.send(JSON.stringify(arregloRespuesta));
-});
-
-app.get('/Bodega/obtenerInventario', function (req, res) {
-  console.log(req.body.length);
-  /*
-  if(tengoPIM)
-  {
-    //ES ESTE MISMO PIM
-    res.send('MI PIM');
-  }
-  else
-  {*/
-    console.log(req.body.destino);
-      var nodo = tabla[req.body.destino];
-      console.log("Redirigiendo a:" + nodo.nodo + ":" + puerto + "/Bodega/obtenerInventario"+rebote);
-      const options = {
-        url: "http://"+nodo.nodo + ":" + puerto + "/Bodega/obtenerInventario"+rebote,
-        method:'GET',
-        json: true,
-        body: req.body
-      };
-
-      request(options,  (err, response, body) => 
-      {
-        if (err) { return console.log(err); }
-        res.send(body);
-      });
-  //}
-
-});
-
-app.get('/Bodega/realizarDespacho', function (req, res) {
-  console.log("Realizar Despacho");
-  console.log(req.body.length);
-  
-  console.log(req.body.destino);
-  var nodo = tabla[req.body.destino];
-  console.log("Redirigiendo a:" + nodo.nodo + ":" + puerto + "/Bodega/realizarDespacho"+rebote);
-  const options = {
-    url: "http://"+nodo.nodo + ":" + puerto + "/Bodega/realizarDespacho"+rebote,
-    method:'GET',
-    json: true,
-    body: req.body
-  };
-
-  request(options,  (err, response, body) => 
-  {
-    if (err) { return console.log(err); }
-    res.send(body);
-  });
-      
-});
-
-app.post('/test/test', function(req, res) {
-  var user_id = req.body.id;
-  var token = req.body.token;
-  var geo = req.body.geo;
-
-  res.send(user_id + ' ' + token + ' ' + geo);
-});
-
 
 //------------CLIENTE-----------------
 // Consultar catalogo (categorias)
@@ -256,85 +137,137 @@ app.post('/test/test', function(req, res) {
 
 //------------------------------------
 
-function test()
+async function start()
 {
-  console.log("cliente test:");
+  console.log("Running client:");
   //Consultar categorias
-  var body = {};
-  
+  var indiceTienda = 0;
+  for(let i = 0; i < config.ordenes; i++)
+  {
+    setInterval(enviarOrden, config.tiempoMuerto);
+    //enviarOrden();
+  }
+}
+
+function enviarOrden()
+{
+  var tiendaIndex =  Math.floor(Math.random() * (+config.tiendas.length - +0)) + +0;
+  console.log("Le toca a la tienda: "+tiendaIndex+" - "+config.tiendas[tiendaIndex]);
+  var tiendadir = config.tiendas[tiendaIndex];
+  var bodySend = {};
   var optionsObtenerCatalogo = {
-    url: 'http://localhost:'+puerto+'/tienda/obtenerCatalogo',
+    url: 'http://'+tiendadir+':'+tiendaport+'/tienda/obtenerCatalogo',
     method: 'GET',
     json:true,
-    body:body
+    body:bodySend
   };
 
   request(optionsObtenerCatalogo, function (error, response, body) {
     if (!error && response.statusCode == 200) 
     {
-      console.log("Fin: ", body) // Print the shortened url.
-      consultarInventario(body);
+      //console.log("Fin: ", body) // Print the shortened url.
+      consultarInventario(body, tiendadir);
     }
     else
     {
-      console.log("Ups!", error);
+      console.log("Ups1!", error);
     }
   });
 }
 
-function consultarInventario(body)
+function consultarInventario(body, tiendadir)
 {
   var cantidadProducto = Math.floor(Math.random() * (+config.rangoFinalCantidadProductos - +config.rangoInicialCantidadProductos)) + +config.rangoInicialCantidadProductos;
   var indiceProducto = Math.floor(Math.random() * (+body.productos.length - +0)) + +0;
   console.log("Cantidad para la orden: "+cantidadProducto);
-  console.log("Producto escogido: "+indiceProducto+" "+body.productos[indiceProducto]);
+  console.log("Producto escogido: "+indiceProducto+" ", body.productos[indiceProducto]);
 
   var optionsObtenerInventario = {
-    url: 'http://localhost:'+puerto+'/tienda/obtenerInventario',
+    url: 'http://'+tiendadir+':'+tiendaport+'/tienda/obtenerInventario',
     method: 'GET',
     json:true,
-    body:body
+    body:{cantidad:cantidadProducto, sku:body.productos[indiceProducto].sku}
   };
 
-  request(optionsObtenerInventario, function (error, response, body) {
+  request(optionsObtenerInventario, function (error, response, bodyProducto) 
+  {
+    if (!error && response.statusCode == 200) 
+    {
+        for(var p in bodyProducto.products)
+        {
+            console.log(bodyProducto.products[p].sku);
+            if(bodyProducto.products[p].sku === body.productos[indiceProducto].sku)
+            {
+              console.log("TiendaInventario: ", bodyProducto.products[p]) // Print the shortened url.
+              console.log(cantidadProducto+" - "+bodyProducto.products[p].inventario);
+              if(cantidadProducto <= bodyProducto.products[p].inventario && body.productos[indiceProducto].activo)
+              {
+                console.log("Colocando orden!");
+                colocarOrden(bodyProducto, tiendadir);
+              }
+              else
+              {
+                console.log("Orden fallida, no hay suficiente producto para colocar una orden o el producto no esta activo.");
+                
+                
+              }
+              break;
+            }
+          }
+        }
+        else
+        {
+          console.log("Ups2!", error);
+        }
+  });
+}
+
+function colocarOrden(producto, tiendadir)
+{
+  console.log("Colocar orden");
+  
+  var optionsColocarOrden = {
+    url: 'http://'+tiendadir+':'+puerto+'/tienda/colocarOrden',
+    method: 'GET',
+    json:true,
+    body:producto
+  };
+  request(optionsColocarOrden, function (error, response, bodyResponse) {
     if (!error && response.statusCode == 200) {
-      console.log("TiendaInventario: ", body) // Print the shortened url.
-      console.log(body.products[0].inventario);
-      if(cantidadProducto <= body.products[0].inventario)
+      console.log("orden colocada: ", bodyResponse);
+
+      if(bodyResponse.response)
       {
-        console.log("Colocando orden!");
-        total++;
+        console.log("True!");
       }
       else
       {
-        console.log("Orden fallida, no hay suficiente producto para colocar una orden.");
+        console.log("False!");
         fallidas++;
-        total++;
       }
+      total++;
     }
     else
     {
-      console.log("Ups!", error);
+      console.log("Ups3!", error);
     }
   });
 }
 
 
-function checkOrigen(destino)
+async function lanzarPeriodo()
 {
-  if(destino === config.Actual)
-  {
-    return true;
-  }
-  return false;
-}
-
-function lanzarPeriodo()
-{
-  test();
   periodo++;
+  console.log("Colocando "+config.ordenes+" ordenes");
+  console.log("En "+config.tiendas.length+" tiendas");
+  console.log("Con "+config.clientes+" clientes");
+  for(var i = 0; i< config.clientes; i++)
+  {
+    start();
+  }
 }
 
-console.log("Cliente de la tienda");
+//console.log("Cliente de la tienda");
 //cargarConfiguracion();
-test();
+//start();
+lanzarPeriodo();
